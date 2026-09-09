@@ -89,8 +89,10 @@
 </div>
 
 <script type="module">
-    // استيراد مكتبة Transformers.js المفتوحة المصدر
-    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.14.0';
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.14.0';
+
+    // السماح بتحميل النماذج العامة من Hugging Face المفتوحة مباشرة
+    env.allowLocalModels = false;
 
     let classifier = null;
     const statusDiv = document.getElementById('status');
@@ -109,7 +111,7 @@
         }
     });
 
-    // دالة تحليل الصورة محلياً داخل المتصفح
+    // دالة تحليل الصورة داخل المتصفح
     window.analyzeImage = async function() {
         const fileInput = document.getElementById('imageInput');
         const resultDiv = document.getElementById('result');
@@ -122,13 +124,12 @@
         resultDiv.style.display = 'none';
 
         try {
-            // تحميل النموذج المحلّي لأول مرة فقط
             if (!classifier) {
-                statusDiv.innerText = 'جاري تحميل نموذج الذكاء الاصطناعي المحلي لأول مرة (مرة واحدة فقط)...';
-                classifier = await pipeline('image-classification', 'Xenova/mobileNetV2-100');
+                statusDiv.innerText = 'جاري تحميل نموذج الذكاء الاصطناعي لأول مرة...';
+                classifier = await pipeline('image-classification', 'Xenova/resnet-50');
             }
 
-            statusDiv.innerText = 'جاري تحليل الصورة محلياً داخل جهازك...';
+            statusDiv.innerText = 'جاري تحليل الصورة محلياً...';
 
             const imgElement = document.getElementById('preview');
             const output = await classifier(imgElement.src);
@@ -136,11 +137,10 @@
             statusDiv.innerText = '';
             resultDiv.style.display = 'block';
 
-            // تنسيق النتيجة والنسب
-            let resultText = "🔍 **النتائج المتوقعة من النموذج المحلّي:**\n\n";
+            let resultText = "🔍 **النتائج المتوقعة:**\n\n";
             output.slice(0, 3).forEach((item, index) => {
                 const scorePercentage = (item.score * 100).toFixed(1);
-                resultText += `${index + 1}. **${item.label}** (نسبة التأكد: ${scorePercentage}%)\n`;
+                resultText += `${index + 1}. **${item.label}** (${scorePercentage}%)\n`;
             });
 
             resultDiv.innerText = resultText;
