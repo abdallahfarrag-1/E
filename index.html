@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التعرف على نوع الهاتف (بدون API Key)</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 { color: #1a73e8; margin-top: 0; }
+        label { display: block; text-align: right; margin-top: 15px; font-weight: bold; }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 15px;
+        }
+        button:hover { background-color: #1557b0; }
+        #preview {
+            max-width: 100%;
+            max-height: 250px;
+            margin-top: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #e8f0fe;
+            color: #1967d2;
+            font-weight: bold;
+            display: none;
+            text-align: right;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📱 كاشف نوع الهاتف (بدون API Key)</h2>
+    
+    <label for="imageInput">اختر صورة الهاتف:</label>
+    <input type="file" id="imageInput" accept="image/*">
+    
+    <img id="preview" alt="معاينة الصورة">
+
+    <button onclick="analyzeImage()">التعرف على الصورة</button>
+
+    <div id="status"></div>
+    <div id="result"></div>
+</div>
+
+<script type="module">
+    // استيراد مكتبة Transformers.js المفتوحة المصدر
+    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.14.0';
+
+    let classifier = null;
+    const statusDiv = document.getElementById('status');
+
+    // معاينة الصورة عند اختيارها
+    document.getElementById('imageInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('preview');
+                img.src = e.target.result;
+                img.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // دالة تحليل الصورة محلياً داخل المتصفح
+    window.analyzeImage = async function() {
+        const fileInput = document.getElementById('imageInput');
+        const resultDiv = document.getElementById('result');
+
+        if (fileInput.files.length === 0) {
+            alert('يرجى اختيار صورة أولاً.');
+            return;
+        }
+
+        resultDiv.style.display = 'none';
+
+        try {
+            // تحميل النموذج المحلّي لأول مرة فقط
+            if (!classifier) {
+                statusDiv.innerText = 'جاري تحميل نموذج الذكاء الاصطناعي المحلي لأول مرة (مرة واحدة فقط)...';
+                classifier = await pipeline('image-classification', 'Xenova/mobileNetV2-100');
+            }
+
+            statusDiv.innerText = 'جاري تحليل الصورة محلياً داخل جهازك...';
+
+            const imgElement = document.getElementById('preview');
+            const output = await classifier(imgElement.src);
+
+            statusDiv.innerText = '';
+            resultDiv.style.display = 'block';
+
+            // تنسيق النتيجة والنسب
+            let resultText = "🔍 **النتائج المتوقعة من النموذج المحلّي:**\n\n";
+            output.slice(0, 3).forEach((item, index) => {
+                const scorePercentage = (item.score * 100).toFixed(1);
+                resultText += `${index + 1}. **${item.label}** (نسبة التأكد: ${scorePercentage}%)\n`;
+            });
+
+            resultDiv.innerText = resultText;
+
+        } catch (error) {
+            console.error(error);
+            statusDiv.innerText = '';
+            alert('حدث خطأ أثناء معالجة الصورة: ' + error.message);
+        }
+    };
+</script>
+
+</body>
+</html>
