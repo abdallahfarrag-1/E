@@ -78,7 +78,6 @@
             margin-left: auto;
             margin-right: auto;
         }
-        /* خانة معلومات الصورة والأبعاد */
         #imageInfo {
             margin-top: 10px;
             padding: 10px;
@@ -122,7 +121,6 @@
     
     <img id="preview" alt="معاينة الصورة">
     
-    <!-- خانة لعرض تفاصيل الأبعاد والحجم قبل وبعد الضغط -->
     <div id="imageInfo"></div>
 
     <button class="btn-submit" onclick="analyzePhone()">التعرف على الهاتف</button>
@@ -134,7 +132,6 @@
     let selectedFile = null;
     let processedBase64 = null;
 
-    // دالة لحساب حجم بيانات Base64 بالكيلوبايت
     function getBase64SizeKB(base64String) {
         const stringLength = base64String.length - (base64String.indexOf(',') + 1);
         const sizeInBytes = 4 * Math.ceil(stringLength / 3) * 0.562489;
@@ -154,16 +151,14 @@
                     const originalHeight = img.height;
                     const originalSizeKB = (file.size / 1024).toFixed(1);
 
-                    // عرض الصورة الأصلية في المعاينة أولاً
                     const previewImg = document.getElementById('preview');
                     previewImg.src = e.target.result;
                     previewImg.style.display = 'block';
 
-                    // ضغط الصورة فور اختيارها لحساب الأبعاد الجديدة
-                    compressImage(file, 800, 0.8).then(result => {
+                    // تم تعديل الحد الأقصى هنا إلى 500 بكسل
+                    compressImage(file, 500, 0.8).then(result => {
                         processedBase64 = result.base64;
                         
-                        // عرض تفاصيل الأبعاد والحجم في الخانة المخصصة
                         const infoDiv = document.getElementById('imageInfo');
                         infoDiv.style.display = 'block';
                         infoDiv.innerHTML = `
@@ -181,8 +176,7 @@
     document.getElementById('cameraInput').addEventListener('change', handleFileSelect);
     document.getElementById('galleryInput').addEventListener('change', handleFileSelect);
 
-    // دالة ضغط الصورة وإرجاع الأبعاد والـ Base64 والحجم الجديد
-    function compressImage(file, maxWidth = 800, quality = 0.8) {
+    function compressImage(file, maxWidth = 500, quality = 0.8) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = function(e) {
