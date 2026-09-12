@@ -89,7 +89,6 @@
             text-align: right;
             white-space: pre-line;
         }
-        /* إخفاء مدخلات الملفات الافتراضية */
         input[type="file"] { display: none; }
     </style>
 </head>
@@ -107,9 +106,7 @@
         <button class="btn-action gallery" onclick="document.getElementById('galleryInput').click()">📁 معرض الصور</button>
     </div>
 
-    <!-- مدخل الكاميرا المباشرة -->
     <input type="file" id="cameraInput" accept="image/*" capture="environment">
-    <!-- مدخل معرض الصور -->
     <input type="file" id="galleryInput" accept="image/*">
     
     <img id="preview" alt="معاينة الصورة">
@@ -139,12 +136,36 @@
     document.getElementById('cameraInput').addEventListener('change', handleFileSelect);
     document.getElementById('galleryInput').addEventListener('change', handleFileSelect);
 
-    function fileToBase64(file) {
+    // دالة لضغط الصورة وتصغير أبعادها باستخدام عنصر Canvas قبل إرسالها
+    function compressImage(file, maxWidth = 800, quality = 0.8) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64Data = reader.result.split(',')[1];
-                resolve(base64Data);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    let width = img.width;
+                    let height = img.height;
+
+                    // حساب الأبعاد الجديدة مع الحفاظ على نسبة الطول إلى العرض
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // تحويل الصورة إلى Base64 بصيغة JPEG وبدرجة ضغط محددة
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    const base64Data = compressedDataUrl.split(',')[1];
+                    resolve(base64Data);
+                };
+                img.onerror = reject;
             };
             reader.onerror = reject;
             reader.readAsDataURL(file);
@@ -166,12 +187,12 @@
         }
 
         resultDiv.style.display = 'block';
-        resultDiv.innerText = 'جاري تحليل الصورة والتعرف على الهاتف...';
+        resultDiv.innerText = 'جاري ضغط وتحليل الصورة والتعرف على الهاتف...';
 
         try {
-            const base64Image = await fileToBase64(selectedFile);
+            // ضغط الصورة برمجياً لتصبح أبعادها مثالية واستهلاكها قليل جداً للتوكنز
+            const base64Image = await compressImage(selectedFile, 800, 0.8);
 
-            // استخدام اسم الموديل المطلوب gemini-3.6-flash
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
             const payload = {
@@ -181,7 +202,7 @@
                             { text: 'تعرف على الهاتف الموجود في هذه الصورة. حدد الماركة (Brand) والموديل (Model) بدقة، واذكر أبرز مواصفاته إن أمكن باختصار باللغة العربية.' },
                             {
                                 inline_data: {
-                                    mime_type: selectedFile.type || 'image/jpeg',
+                                    mime_type: 'image/jpeg',
                                     data: base64Image
                                 }
                             }
