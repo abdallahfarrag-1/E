@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التعرف على نوع الهاتف باستخدام Gemini</title>
+    <title>البحث باستخدام Google Lens API عبر SerpApi</title>
     <style>
         body {
             font-family: system-ui, -apple-system, sans-serif;
@@ -27,46 +27,7 @@
         }
         h2 { color: #1a73e8; margin-top: 0; }
         label { display: block; text-align: right; margin-top: 15px; font-weight: bold; }
-        input[type="text"], input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #1a73e8;
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>التعرف على نوع الهاتف باستخدام Gemini</title>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: #f4f6f9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .container {
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            max-width: 450px;
-            width: 100%;
-            text-align: center;
-        }
-        h2 { color: #1a73e8; margin-top: 0; }
-        label { display: block; text-align: right; margin-top: 15px; font-weight: bold; }
-        input[type="text"], input[type="file"] {
+        input[type="text"] {
             width: 100%;
             padding: 10px;
             margin: 8px 0;
@@ -86,13 +47,6 @@
             margin-top: 15px;
         }
         button:hover { background-color: #1557b0; }
-        #preview {
-            max-width: 100%;
-            max-height: 250px;
-            margin-top: 15px;
-            border-radius: 8px;
-            display: none;
-        }
         #result {
             margin-top: 20px;
             padding: 15px;
@@ -109,98 +63,62 @@
 <body>
 
 <div class="container">
-    <h2>📱 كاشف نوع الهاتف</h2>
+    <h2>🔍 كاشف العناصر (SerpApi - Google Lens)</h2>
     
-    <label for="apiKey">أدخل مفتاح Gemini API:</label>
-    <input type="text" id="apiKey" placeholder="ضع الـ API Key الخاص بك هنا">
+    <label for="apiKey">أدخل مفتاح SerpApi Key:</label>
+    <input type="text" id="apiKey" placeholder="ضع الـ SerpApi Key هنا">
 
-    <label for="imageInput">اختر صورة الهاتف:</label>
-    <input type="file" id="imageInput" accept="image/*">
-    
-    <img id="preview" alt="معاينة الصورة">
+    <label for="imageUrl">رابط صورة الهاتف (Image URL):</label>
+    <input type="text" id="imageUrl" placeholder="https://example.com/phone.jpg">
 
-    <button onclick="analyzePhone()">التعرف على الهاتف</button>
+    <button onclick="searchWithSerpApi()">بحث عبر عدسة جوجل</button>
 
     <div id="result"></div>
 </div>
 
-<script type="importmap">
-  {
-    "imports": {
-      "@google/genai": "https://esm.run/@google/genai"
-    }
-  }
-</script>
-
-<script type="module">
-    import { GoogleGenAI } from "@google/genai";
-
-    document.getElementById('imageInput').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const img = document.getElementById('preview');
-                img.src = e.target.result;
-                img.style.display = 'block';
-            }
-            reader.readAsDataURL(file);
-        }
-    });
-
-    function fileToGenerativePart(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64Data = reader.result.split(',')[1];
-                resolve({
-                    inlineData: {
-                        data: base64Data,
-                        mimeType: file.type
-                    }
-                });
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-
-    window.analyzePhone = async function() {
+<script>
+    async function searchWithSerpApi() {
         const apiKey = document.getElementById('apiKey').value.trim();
-        const fileInput = document.getElementById('imageInput');
+        const imageUrl = document.getElementById('imageUrl').value.trim();
         const resultDiv = document.getElementById('result');
 
         if (!apiKey) {
-            alert('يرجى إدخال API Key الخاص بك.');
+            alert('يرجى إدخال SerpApi Key الخاص بك.');
             return;
         }
 
-        if (fileInput.files.length === 0) {
-            alert('يرجى اختيار صورة أولاً.');
+        if (!imageUrl) {
+            alert('يرجى إدخال رابط الصورة.');
             return;
         }
 
         resultDiv.style.display = 'block';
-        resultDiv.innerText = 'جاري تحليل الصورة والتعرف على الهاتف...';
+        resultDiv.innerText = 'جاري البحث عبر Google Lens...';
 
         try {
-            const ai = new GoogleGenAI({ apiKey: apiKey });
-            const imagePart = await fileToGenerativePart(fileInput.files[0]);
+            const url = `https://serpapi.com/search.json?engine=google_lens&url=${encodeURIComponent(imageUrl)}&api_key=${apiKey}`;
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-3.6-flash',
-                contents: [
-                    'تعرف على الهاتف الموجود في هذه الصورة. حدد الماركة (Brand) والموديل (Model) بدقة، واذكر أبرز مواصفاته إن أمكن باختصار باللغة العربية.',
-                    imagePart
-                ],
-            });
+            const response = await fetch(url);
+            const data = await response.json();
 
-            resultDiv.innerText = response.text;
+            if (data.visual_matches && data.visual_matches.length > 0) {
+                let output = '📱 نتائج المطابقة البصرية (Google Lens):\n\n';
+                data.visual_matches.slice(0, 5).forEach(item => {
+                    output += `🔹 ${item.title || 'بدون عنوان'}\n`;
+                    if (item.source) output += `   المصدر: ${item.source}\n`;
+                    if (item.price) output += `   السعر: ${item.price.value} ${item.price.currency}\n`;
+                    output += '\n';
+                });
+                resultDiv.innerText = output;
+            } else {
+                resultDiv.innerText = 'لم يتم العثور على نتائج متطابقة للصورة.';
+            }
+
         } catch (error) {
             console.error(error);
-            resultDiv.innerText = 'حدث خطأ أثناء تحليل الصورة: ' + error.message;
+            resultDiv.innerText = 'حدث خطأ أثناء الاتصال بالخدمة: ' + error.message;
         }
-    };
+    }
 </script>
 
 </body>
