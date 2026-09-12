@@ -72,7 +72,7 @@
 <div class="container">
     <h2>📱 كاشف نوع الهاتف</h2>
     
-    <label for="apiKey">أدخل مفتاح Gemini API (API Key):</label>
+    <label for="apiKey">أدخل مفتاح Gemini API:</label>
     <input type="text" id="apiKey" placeholder="ضع الـ API Key الخاص بك هنا">
 
     <label for="imageInput">اختر صورة الهاتف:</label>
@@ -149,7 +149,7 @@
             const imagePart = await fileToGenerativePart(fileInput.files[0]);
 
             const response = await ai.models.generateContent({
-                model: 'gemini-3.6-flash',
+                model: 'gemini-2.5-flash',
                 contents: [
                     'تعرف على الهاتف الموجود في هذه الصورة. حدد الماركة (Brand) والموديل (Model) بدقة، واذكر أبرز مواصفاته إن أمكن باختصار باللغة العربية.',
                     imagePart
