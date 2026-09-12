@@ -27,7 +27,7 @@
         }
         h2 { color: #1a73e8; margin-top: 0; }
         label { display: block; text-align: right; margin-top: 15px; font-weight: bold; }
-        input[type="text"], input[type="file"] {
+        input[type="text"] {
             width: 100%;
             padding: 10px;
             margin: 8px 0;
@@ -35,7 +35,28 @@
             border-radius: 6px;
             box-sizing: border-box;
         }
-        button {
+        .buttons-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-action {
+            flex: 1;
+            background-color: #34a853;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .btn-action.gallery {
+            background-color: #fbbc05;
+            color: #202124;
+        }
+        .btn-action:hover { opacity: 0.9; }
+        .btn-submit {
             background-color: #1a73e8;
             color: white;
             border: none;
@@ -45,14 +66,17 @@
             font-size: 16px;
             width: 100%;
             margin-top: 15px;
+            font-weight: bold;
         }
-        button:hover { background-color: #1557b0; }
+        .btn-submit:hover { background-color: #1557b0; }
         #preview {
             max-width: 100%;
             max-height: 250px;
             margin-top: 15px;
             border-radius: 8px;
             display: none;
+            margin-left: auto;
+            margin-right: auto;
         }
         #result {
             margin-top: 20px;
@@ -65,6 +89,8 @@
             text-align: right;
             white-space: pre-line;
         }
+        /* إخفاء مدخلات الملفات الافتراضية */
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
@@ -75,20 +101,31 @@
     <label for="apiKey">أدخل مفتاح Gemini API:</label>
     <input type="text" id="apiKey" placeholder="ضع الـ API Key الخاص بك هنا">
 
-    <label for="imageInput">اختر صورة الهاتف:</label>
-    <input type="file" id="imageInput" accept="image/*" capture="environment">
+    <label>اختر طريقة إدخال الصورة:</label>
+    <div class="buttons-group">
+        <button class="btn-action" onclick="document.getElementById('cameraInput').click()">📸 التقاط صورة</button>
+        <button class="btn-action gallery" onclick="document.getElementById('galleryInput').click()">📁 معرض الصور</button>
+    </div>
+
+    <!-- مدخل الكاميرا المباشرة -->
+    <input type="file" id="cameraInput" accept="image/*" capture="environment">
+    <!-- مدخل معرض الصور -->
+    <input type="file" id="galleryInput" accept="image/*">
     
     <img id="preview" alt="معاينة الصورة">
 
-    <button onclick="analyzePhone()">التعرف على الهاتف</button>
+    <button class="btn-submit" onclick="analyzePhone()">التعرف على الهاتف</button>
 
     <div id="result"></div>
 </div>
 
 <script>
-    document.getElementById('imageInput').addEventListener('change', function(event) {
+    let selectedFile = null;
+
+    function handleFileSelect(event) {
         const file = event.target.files[0];
         if (file) {
+            selectedFile = file;
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = document.getElementById('preview');
@@ -97,7 +134,10 @@
             }
             reader.readAsDataURL(file);
         }
-    });
+    }
+
+    document.getElementById('cameraInput').addEventListener('change', handleFileSelect);
+    document.getElementById('galleryInput').addEventListener('change', handleFileSelect);
 
     function fileToBase64(file) {
         return new Promise((resolve, reject) => {
@@ -113,7 +153,6 @@
 
     async function analyzePhone() {
         const apiKey = document.getElementById('apiKey').value.trim();
-        const fileInput = document.getElementById('imageInput');
         const resultDiv = document.getElementById('result');
 
         if (!apiKey) {
@@ -121,8 +160,8 @@
             return;
         }
 
-        if (fileInput.files.length === 0) {
-            alert('يرجى اختيار صورة أولاً.');
+        if (!selectedFile) {
+            alert('يرجى التقاط صورة أو اختيار صورة من المعرض أولاً.');
             return;
         }
 
@@ -130,10 +169,10 @@
         resultDiv.innerText = 'جاري تحليل الصورة والتعرف على الهاتف...';
 
         try {
-            const file = fileInput.files[0];
-            const base64Image = await fileToBase64(file);
+            const base64Image = await fileToBase64(selectedFile);
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+            // استخدام اسم الموديل المطلوب gemini-3.6-flash
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
 
             const payload = {
                 contents: [
@@ -142,7 +181,7 @@
                             { text: 'تعرف على الهاتف الموجود في هذه الصورة. حدد الماركة (Brand) والموديل (Model) بدقة، واذكر أبرز مواصفاته إن أمكن باختصار باللغة العربية.' },
                             {
                                 inline_data: {
-                                    mime_type: file.type || 'image/jpeg',
+                                    mime_type: selectedFile.type || 'image/jpeg',
                                     data: base64Image
                                 }
                             }
