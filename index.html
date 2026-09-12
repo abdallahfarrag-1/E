@@ -37,6 +37,45 @@
         }
         button {
             background-color: #1a73e8;
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التعرف على نوع الهاتف باستخدام Gemini</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        h2 { color: #1a73e8; margin-top: 0; }
+        label { display: block; text-align: right; margin-top: 15px; font-weight: bold; }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #1a73e8;
             color: white;
             border: none;
             padding: 12px 20px;
@@ -149,7 +188,7 @@
             const imagePart = await fileToGenerativePart(fileInput.files[0]);
 
             const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: 'gemini-3.6-flash',
                 contents: [
                     'تعرف على الهاتف الموجود في هذه الصورة. حدد الماركة (Brand) والموديل (Model) بدقة، واذكر أبرز مواصفاته إن أمكن باختصار باللغة العربية.',
                     imagePart
