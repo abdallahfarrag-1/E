@@ -180,7 +180,7 @@
                 img.onload = function() {
                     const MAX_KB = 30;
                     const MIN_SIDE = 384; // الحد الأدنى للضلع الأقصر
-                    const sizes = [640, 560, 480, 420, 384];
+                    const sizes = [384]; // الضلع الأقصر دايمًا 384 (ما لم تكن الصورة الأصلية أصغر)
 
                     const kbOf = (dataUrl) => {
                         const b64 = dataUrl.split(',')[1];
