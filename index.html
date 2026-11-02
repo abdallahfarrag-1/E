@@ -96,7 +96,8 @@
             color: #1967d2;
             font-weight: bold;
             display: none;
-            text-align: right;
+            text-align: left;
+            direction: ltr;
             white-space: pre-line;
         }
         input[type="file"] { display: none; }
@@ -255,7 +256,7 @@
                 contents: [
                     {
                         parts: [
-                            { text: 'تعرف على الهاتف في الصورة. اكتب فقط اسم الهاتف (الماركة والموديل) في السطر الأول، ثم الأجهزة الأخرى المحتملة المشابهة كل واحد في سطر تحت بعض. بدون أي تفاصيل أو شرح أو مقدمات أو ترقيم أو رموز.' },
+                            { text: 'Identify the phone in the image. Reply in English only. Write only the phone name (brand and model) on the first line, then other possible matching devices, one per line under each other. No details, no explanation, no intro, no numbering, no symbols.' },
                             {
                                 inline_data: {
                                     mime_type: 'image/jpeg',
